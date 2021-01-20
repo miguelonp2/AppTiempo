@@ -12,9 +12,23 @@ buscar.addEventListener("click", () => {
       return tiempoActual(weatherData);
     })
     .then((coordenadas) => {
-      estimacion7Dias(coordenadas);
-    });
+      return estimacion7Dias(coordenadas);
+    }).then(coordenadas =>{
+      proximas24Horas(coordenadas);
+    })
 });
+let input = document.querySelector('#inputLocalizacion');
+input.addEventListener('focus',()=>{
+  let tiempoActual = document.querySelector('#tiempoActual');
+  let estimacion7Dias = document.querySelector('#estimacion7Dias');
+  let proximas24Horas = document.querySelector('#proximas24Horas');
+  if (tiempoActual)
+    tiempoActual.remove();
+  if(estimacion7Dias)
+    estimacion7Dias.remove();
+  if(proximas24Horas)
+    proximas24Horas.remove();
+})
 
 function kelvinToCelsius(temp) {
   return Math.round((temp - 273.5) * 100) / 100;
@@ -38,6 +52,11 @@ function tiempoActual(json) {
   let contenedor = document.createElement("div");
   contenedor.id = "tiempoActual";
   BODY.appendChild(contenedor);
+
+  let h2 = document.createElement("h2");
+  h2.id = "tiempoActualH2";
+  h2.innerText="Tiempo Actual";
+  contenedor.appendChild(h2);
 
   let divEstado = document.createElement("div");
   divEstado.id = "div";
@@ -83,10 +102,15 @@ function estimacion7Dias(coordenadas) {
       return response.json();
     })
     .then((weatherData) => {
-      console.log(weatherData);
+      //console.log(weatherData);
       let contenedor = document.createElement("div");
       contenedor.id = "estimacion7Dias";
       BODY.appendChild(contenedor);
+
+      let h2 = document.createElement("h2");
+      h2.id = "estimacion7diasH2";
+      h2.innerText="Estimación Próximos 7 Días";
+      contenedor.appendChild(h2);
 
       let arrayDays=weatherData.daily;
       let contador = 1;
@@ -96,6 +120,38 @@ function estimacion7Dias(coordenadas) {
         div.innerText="Tiempo (hoy+"+contador+"): "+element.weather[0].main;
         contenedor.appendChild(div);
         contador++;
+      });
+    });
+    return coordenadas;
+}
+
+function proximas24Horas(coordenadas){
+  let consulta = `https://api.openweathermap.org/data/2.5/onecall?lat=${coordenadas[0]}&lon=${coordenadas[1]}&appid=${apiKey}`;
+  fetch(consulta)
+    .then((response) => {
+      return response.json();
+    })
+    .then((weatherData) => {
+      //console.log(weatherData);
+      let contenedor = document.createElement("div");
+      contenedor.id = "proximas24Horas";
+      BODY.appendChild(contenedor);
+
+      let h2 = document.createElement("h2");
+      h2.id = "24HorasH2";
+      h2.innerText="Temperatura Próximas 24 Horas";
+      contenedor.appendChild(h2);
+
+      let arrayHoras=weatherData.hourly;
+      let contador = 1;
+      arrayHoras.map(element=>{
+        if(contador<25){
+          let div = document.createElement("div");
+          div.id ="div"+contador;
+          div.innerText="Tiempo (ahora+"+contador+"): "+kelvinToCelsius(element.temp)+"Cº";
+          contenedor.appendChild(div);
+          contador++;
+        }
       });
     });
 }
